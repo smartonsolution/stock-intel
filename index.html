@@ -650,6 +650,9 @@
     var MI = 0; // model index
     var BUSY = false, READY = false, CURTAB = 'all';
     var QUOTA1 = false, QUOTA2 = false;
+    var APIEXPAND = false;
+    var CACHE_KEY = 'stockIntelCache_v1';
+    var CACHE_MIN = 30;
     var ST = { all: 'W', today: 'W', week: 'W', plan: 'W' };
     var DD = { all: null, today: null, week: null, plan: null };
     var EM = {};
@@ -666,17 +669,55 @@
     function cc(s) { return (s || '').charAt(0) === '+' ? '#00ff88' : '#ff4444'; }
     function pc(p) { return !p ? '#4a6fa5' : p.indexOf('매우') >= 0 ? '#00ff88' : p.indexOf('높') >= 0 ? '#ffd700' : p.indexOf('중') >= 0 ? '#ff9933' : '#4a6fa5'; }
     function nf(s) { return s == null ? '' : String(s).replace(/\d{4,}/g, function (n) { return parseInt(n, 10).toLocaleString('en-US'); }); }
+
+    function saveCache() {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), today: TODAY, DD: DD, ST: ST }));
+      } catch (e) { }
+    }
+    function loadCache() {
+      try {
+        var raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return false;
+        var c = JSON.parse(raw);
+        if (!c || c.today !== TODAY) return false;
+        var age = Date.now() - (c.ts || 0);
+        if (age > CACHE_MIN * 60 * 1000) { localStorage.removeItem(CACHE_KEY); return false; }
+        DD = c.DD || DD;
+        ST = c.ST || ST;
+        return true;
+      } catch (e) { return false; }
+    }
+    function cacheAge() {
+      try {
+        var raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return 0;
+        var c = JSON.parse(raw);
+        return Math.max(0, CACHE_MIN - Math.floor((Date.now() - (c.ts || 0)) / 60000));
+      } catch (e) { return 0; }
+    }
     function getKey() { return AK === 1 ? K1 : K2; }
     function getModel() { return MODELS[MI] || 'gemini-2.5-flash'; }
     function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
     // ════ API 키 UI ════
+    function toggleAPI() { APIEXPAND = !APIEXPAND; renderAPI(); }
+
     function renderAPI() {
       var el = document.getElementById('apiArea');
       if (!el) return;
 
+      var hasKey = !!(K1 || K2);
+
+      if (hasKey && !APIEXPAND) {
+        var s1 = K1 ? (AK === 1 ? '🟢' : '⚪') : '❌';
+        var s2 = K2 ? (AK === 2 ? '🟢' : '⚪') : '⚫';
+        el.innerHTML = '<div style="background:#0d1b2e;border:1px solid #1a3a6e;border-radius:8px;padding:6px 12px;margin:8px 16px 0;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#7eb8f7"><span>🔑 키1 ' + s1 + (K2 || !K1 ? ' · 키2 ' + s2 : '') + '</span><button onclick="toggleAPI()" style="background:#1a2744;border:none;border-radius:5px;color:#7eb8f7;font-size:10px;padding:4px 9px;cursor:pointer;font-family:inherit">⚙️ 관리</button></div>';
+        return;
+      }
+
       var h = '<div class="abox">';
-      h += '<h3>🔑 Gemini API 키 <span style="background:#00ff8811;border:1px solid #00ff8833;border-radius:5px;padding:2px 8px;font-size:10px;color:#00ff88">✅ 무료</span></h3>';
+      h += '<h3 style="display:flex;justify-content:space-between;align-items:center">🔑 Gemini API 키 <span style="background:#00ff8811;border:1px solid #00ff8833;border-radius:5px;padding:2px 8px;font-size:10px;color:#00ff88">✅ 무료</span>' + (hasKey ? '<button onclick="toggleAPI()" style="background:#1a2744;border:none;border-radius:5px;color:#7eb8f7;font-size:10px;padding:3px 8px;cursor:pointer;font-family:inherit;margin-left:auto">접기 ▲</button>' : '') + '</h3>';
 
       // 키 1
       h += '<div class="akrow">';
@@ -728,6 +769,7 @@
       if (!v || v.indexOf('AIza') !== 0) { alert('올바른 Gemini API 키를 입력해주세요\n(AIza로 시작합니다)'); return; }
       if (n === 1) { K1 = v; localStorage.setItem('gk1', v); if (!K2) AK = 1; }
       else { K2 = v; localStorage.setItem('gk2', v); }
+      APIEXPAND = false;
       renderAPI();
     }
 
@@ -913,16 +955,19 @@
 
       BUSY = false;
       var done = ['all', 'today', 'week', 'plan'].filter(function (k) { return ST[k] === 'D'; }).length;
-      bc.disabled = false;
-      bc.className = 'btn bcol fin';
-      var hasErrorsAfter = Object.keys(ST).some(function (k) { return ST[k] === 'E'; });
-      bc.innerHTML = hasErrorsAfter ? '🔄 실패 항목 재시도' : '🔄 다시 수집';
 
       if (done > 0) {
         READY = true;
         document.getElementById('liveDot').classList.add('on');
         document.getElementById('sharewrap').style.display = 'block';
+        saveCache();
       }
+
+      bc.disabled = false;
+      bc.className = 'btn bcol fin';
+      var hasErrorsAfter = Object.keys(ST).some(function (k) { return ST[k] === 'E'; });
+      bc.innerHTML = hasErrorsAfter ? '🔄 실패 항목 재시도' : ('🔄 다시 수집 (' + cacheAge() + '분 캐시 유효)');
+
       renderProg();
     }
 
@@ -1082,6 +1127,17 @@
     })();
 
     renderAPI();
+
+    if (loadCache()) {
+      READY = true;
+      document.getElementById('liveDot').classList.add('on');
+      document.getElementById('sharewrap').style.display = 'block';
+      var bc = document.getElementById('btnC');
+      bc.className = 'btn bcol fin';
+      bc.innerHTML = '🔄 다시 수집 (' + cacheAge() + '분 캐시 유효)';
+      renderProg();
+      renderTabs();
+    }
   </script>
 </body>
 
