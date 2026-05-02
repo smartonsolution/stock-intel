@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#0d1b2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="주식알림">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <title>주식 인텔리전스</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent
+    }
+
+    body {
+      background: #080c14;
+      color: #e8eaf0;
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto
+    }
+
+    /* 헤더 */
+    .hdr {
+      background: linear-gradient(135deg, #0d1b2e, #0a1628);
+      border-bottom: 1px solid #1a2744;
+      padding: 13px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100
+    }
+
+    .hdot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4a6fa5;
+      display: inline-block;
+      margin-right: 7px;
+      vertical-align: middle;
+      transition: all .5s
+    }
+
+    .hdot.on {
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88
+    }
+
+    .htit {
+      font-size: 17px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff, #7eb8f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 4px 0 2px
+    }
+
+    .hdate {
+      font-size: 10px;
+      color: #4a6fa5
+    }
+
+    /* API 키 */
+    .abox {
+      background: #0d1b2e;
+      border: 1px solid #1a3a6e;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 14px 16px 0
+    }
+
+    .abox h3 {
+      font-size: 13px;
+      color: #7eb8f7;
+      margin-bottom: 8px
+    }
+
+    .akrow {
+      background: #0a1628;
+      border: 1px solid #1a3a6e;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 8px
+    }
+
+    .aktop {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px
+    }
+
+    .aktit {
+      font-size: 12px;
+      color: #7eb8f7;
+      font-weight: 700
+    }
+
+    .akst {
+      font-size: 11px
+    }
+
+    .ainrow {
+      display: flex;
+      gap: 8px
+    }
+
+    .ain {
+      flex: 1;
+      background: #080c14;
+      border: 1px solid #1a3a6e;
+      border-radius: 7px;
+      padding: 9px 12px;
+      color: #e8eaf0;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit
+    }
+
+    .ain:focus {
+      border-color: #0055ff
+    }
+
+    .asave {
+      background: linear-gradient(135deg, #0055ff, #003399);
+      border: none;
+      border-radius: 7px;
+      padding: 9px 14px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap
+    }
+
+    .adel {
+      background: #1a2744;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 12px;
+      color: #4a6fa5;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit
+    }
+
+    .aguide {
+      background: #0a2040;
+      border: 1px solid #1a3a6e;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: #4a6fa5;
+      line-height: 2
+    }
+
+    .aguide a {
+      color: #7eb8f7;
+      text-decoration: none
+    }
+
+    .atestbtn {
+      width: 100%;
+      background: linear-gradient(135deg, #1a3a6e, #0d2040);
+      border: 1px solid #1a5aaa;
+      border-radius: 8px;
+      padding: 10px;
+      color: #7eb8f7;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 6px;
+      transition: all .3s
+    }
+
+    /* 버튼 */
+    .bwrap {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 17px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: .5px;
+      transition: all .3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px
+    }
+
+    .btn:disabled {
+      opacity: .4;
+      cursor: not-allowed
+    }
+
+    .bcol {
+      background: linear-gradient(135deg, #0055ff, #003399);
+      color: #fff;
+      box-shadow: 0 5px 18px rgba(0, 85, 255, .4)
+    }
+
+    .bcol.run {
+      background: #1a2744;
+      color: #4a6fa5;
+      box-shadow: none
+    }
+
+    .bcol.fin {
+      background: linear-gradient(135deg, #1a3a6e, #0d2040);
+      box-shadow: none
+    }
+
+    .bshr {
+      background: linear-gradient(135deg, #007A33, #005522);
+      color: #fff;
+      box-shadow: 0 5px 18px rgba(0, 122, 51, .4);
+      animation: popIn .4s ease
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(.95)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    /* 진행 */
+    .pbox {
+      background: #0d1b2e;
+      border: 1px solid #1a2744;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 0 16px
+    }
+
+    .srow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px
+    }
+
+    .scirc {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid #2a3a5a;
+      background: #0a0f1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      transition: all .3s
+    }
+
+    .scirc.L {
+      border-color: #ffd700
+    }
+
+    .scirc.D {
+      border-color: #00ff88;
+      background: #001a0a
+    }
+
+    .scirc.E {
+      border-color: #ff4444;
+      background: #1a0000
+    }
+
+    .slbl {
+      font-size: 12px;
+      flex: 1;
+      color: #4a6fa5
+    }
+
+    .slbl.L {
+      color: #ffd700
+    }
+
+    .slbl.D {
+      color: #00ff88;
+      font-weight: 700
+    }
+
+    .slbl.E {
+      color: #ff4444
+    }
+
+    .ssub {
+      font-size: 10px;
+      color: #2a3a5a
+    }
+
+    .pbar {
+      height: 4px;
+      background: #1a2744;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 8px
+    }
+
+    .pfill {
+      height: 100%;
+      background: linear-gradient(90deg, #0055ff, #00ff88);
+      border-radius: 2px;
+      transition: width .6s
+    }
+
+    .pmsg {
+      font-size: 12px;
+      text-align: center;
+      padding: 9px;
+      border-radius: 8px;
+      margin-top: 8px;
+      line-height: 1.5
+    }
+
+    .pmsg.C {
+      color: #ffd700;
+      background: #1a1500
+    }
+
+    .pmsg.S {
+      color: #00ff88;
+      background: #001a0a;
+      font-weight: 700
+    }
+
+    .pmsg.E {
+      color: #ff8888;
+      background: #1a0000
+    }
+
+    /* 탭 */
+    .tabs {
+      display: flex;
+      background: #0a0f1a;
+      border-top: 1px solid #1a2744;
+      border-bottom: 1px solid #1a2744;
+      overflow-x: auto;
+      margin-top: 14px;
+      position: sticky;
+      top: 76px;
+      z-index: 99
+    }
+
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 10px 12px;
+      color: #4a6fa5;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      position: relative
+    }
+
+    .tab.on {
+      border-bottom-color: #0055ff;
+      color: #7eb8f7;
+      font-weight: 700
+    }
+
+    .tdot {
+      position: absolute;
+      top: 4px;
+      right: 3px;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%
+    }
+
+    /* 콘텐츠 */
+    .cnt {
+      padding: 12px 14px 80px
+    }
+
+    .sbox {
+      background: linear-gradient(135deg, #0d1b2e, #0a2040);
+      border: 1px solid #1a3a6e;
+      border-radius: 9px;
+      padding: 11px 14px;
+      margin-bottom: 11px;
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+      color: #e8eaf0;
+      line-height: 1.5
+    }
+
+    .card {
+      background: #0d1b2e;
+      border: 1px solid #1a2744;
+      border-radius: 9px;
+      padding: 12px 14px;
+      margin-bottom: 9px
+    }
+
+    .cardh {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 6px
+    }
+
+    .rk {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: #fff
+    }
+
+    .dis {
+      font-size: 11px;
+      color: #a0b4cc;
+      margin-bottom: 4px
+    }
+
+    .rsn {
+      font-size: 11px;
+      color: #7eb8f7;
+      margin-bottom: 3px;
+      line-height: 1.5
+    }
+
+    .rsk {
+      font-size: 10px;
+      color: #ff8888;
+      margin-bottom: 8px
+    }
+
+    .cf {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .scb {
+      min-width: 110px
+    }
+
+    .scr {
+      margin-bottom: 3px
+    }
+
+    .sclr {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2px
+    }
+
+    .sbar {
+      height: 3px;
+      background: #1a2744;
+      border-radius: 2px
+    }
+
+    .sfil {
+      height: 100%;
+      border-radius: 2px
+    }
+
+    .sr {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 7px 0
+    }
+
+    .stat {
+      text-align: center
+    }
+
+    .statl {
+      font-size: 9px;
+      color: #4a6fa5;
+      margin-bottom: 1px
+    }
+
+    .statv {
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .statv.big {
+      font-size: 18px
+    }
+
+    .stathl {
+      background: #001a0a;
+      border-radius: 6px;
+      padding: 4px 10px
+    }
+
+    .mc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 6px 0
+    }
+
+    .mkb {
+      background: linear-gradient(135deg, #0d1b2e, #0a2040);
+      border: 1px solid #1a3a6e;
+      border-radius: 10px;
+      padding: 13px;
+      margin-bottom: 11px
+    }
+
+    .slb2 {
+      font-size: 10px;
+      color: #4a6fa5;
+      letter-spacing: 1px;
+      margin: 10px 0 7px;
+      font-weight: 600
+    }
+
+    .mrow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0d1b2e;
+      border: 1px solid #1a2744;
+      border-radius: 7px;
+      padding: 9px 12px;
+      margin-bottom: 7px;
+      gap: 8px
+    }
+
+    .ml {
+      flex: 1;
+      min-width: 0
+    }
+
+    .mn {
+      font-size: 13px;
+      font-weight: 700
+    }
+
+    .ms {
+      font-size: 10px;
+      color: #a0b4cc;
+      margin-top: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0)
+      }
+
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .3
+      }
+    }
+
+    .spin {
+      animation: spin 1s linear infinite;
+      display: inline-block
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="hdr">
+    <div><span class="hdot" id="liveDot"></span><span style="font-size:9px;color:#4a6fa5;letter-spacing:2px">MARVEL GOLF
+        · STOCK INTELLIGENCE</span></div>
+    <div class="htit">🇰🇷 주식 인텔리전스 <button id="installBtn" onclick="installApp()"
+        style="display:none; margin-left:10px; background:linear-gradient(135deg,#00ff88,#00cc66); color:#001a0a; border:none; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:800; cursor:pointer; vertical-align:middle; box-shadow:0 2px 8px rgba(0,255,136,0.3); animation:popIn 0.5s ease;">📥
+        앱 설치</button></div>
+    <div class="hdate" id="hdate"></div>
+  </div>
+
+  <div id="apiArea"></div>
+
+  <div class="bwrap">
+    <button class="btn bcol" id="btnC" onclick="doCollect()">🔍 데이터 수집 시작</button>
+    <div id="sharewrap" style="display:none">
+      <button class="btn bshr" id="btnS" onclick="doShare()">📤 카톡으로 공유하기</button>
+    </div>
+  </div>
+
+  <div id="progArea"></div>
+
+  <div id="resultArea" style="display:none">
+    <div class="tabs" id="tabBar"></div>
+    <div class="cnt" id="tabCnt"></div>
+  </div>
+
+  <script>
+    // ════ 전역 변수 ════
+    var K1 = localStorage.getItem('gk1') || '';
+    var K2 = localStorage.getItem('gk2') || '';
+    var AK = K1 ? 1 : 2; // active key
+    var MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite'];
+    var MI = 0; // model index
+    var BUSY = false, READY = false, CURTAB = 'all';
+    var QUOTA1 = false, QUOTA2 = false;
+    var ST = { all: 'W', today: 'W', week: 'W', plan: 'W' };
+    var DD = { all: null, today: null, week: null, plan: null };
+    var EM = {};
+
+    var TODAY = (function () {
+      var d = new Date();
+      return d.getFullYear() + '년 ' + (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+    })();
+
+    document.getElementById('hdate').textContent = TODAY;
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(function () { });
+
+    function sc(v) { return v >= 8 ? '#00ff88' : v >= 6 ? '#ffd700' : v >= 4 ? '#ff9933' : '#ff4444'; }
+    function cc(s) { return (s || '').charAt(0) === '+' ? '#00ff88' : '#ff4444'; }
+    function pc(p) { return !p ? '#4a6fa5' : p.indexOf('매우') >= 0 ? '#00ff88' : p.indexOf('높') >= 0 ? '#ffd700' : p.indexOf('중') >= 0 ? '#ff9933' : '#4a6fa5'; }
+    function getKey() { return AK === 1 ? K1 : K2; }
+    function getModel() { return MODELS[MI] || 'gemini-2.5-flash'; }
+    function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+    // ════ API 키 UI ════
+    function renderAPI() {
+      var el = document.getElementById('apiArea');
+      if (!el) return;
+
+      var h = '<div class="abox">';
+      h += '<h3>🔑 Gemini API 키 <span style="background:#00ff8811;border:1px solid #00ff8833;border-radius:5px;padding:2px 8px;font-size:10px;color:#00ff88">✅ 무료</span></h3>';
+
+      // 키 1
+      h += '<div class="akrow">';
+      h += '<div class="aktop"><span class="aktit">키 1 (주)</span>';
+      h += K1 ? '<span class="akst" style="color:#00ff88">' + (AK === 1 ? '🟢 사용중' : '⚪ 대기') + '</span>' : '<span class="akst" style="color:#ff4444">❌ 미설정</span>';
+      h += '</div><div class="ainrow">';
+      if (K1) {
+        h += '<input class="ain" type="password" value="●●●●●●●●" disabled>';
+        h += '<button class="adel" onclick="delKey(1)">삭제</button>';
+      } else {
+        h += '<input class="ain" id="in1" type="password" placeholder="AIza...">';
+        h += '<button class="asave" onclick="saveKey(1)">저장</button>';
+      }
+      h += '</div></div>';
+
+      // 키 2
+      h += '<div class="akrow">';
+      h += '<div class="aktop"><span class="aktit">키 2 (자동전환)</span>';
+      h += K2 ? '<span class="akst" style="color:#00ff88">' + (AK === 2 ? '🟢 사용중' : '⚪ 대기') + '</span>' : '<span class="akst" style="color:#4a6fa5">미설정 (선택)</span>';
+      h += '</div><div class="ainrow">';
+      if (K2) {
+        h += '<input class="ain" type="password" value="●●●●●●●●" disabled>';
+        h += '<button class="adel" onclick="delKey(2)">삭제</button>';
+      } else {
+        h += '<input class="ain" id="in2" type="password" placeholder="AIza...">';
+        h += '<button class="asave" onclick="saveKey(2)">저장</button>';
+      }
+      h += '</div></div>';
+
+      // 테스트 버튼
+      if (K1 || K2) {
+        h += '<button class="atestbtn" id="testBtn" onclick="testConn()">🔍 API 연결 테스트</button>';
+      }
+
+      // 가이드
+      h += '<div class="aguide">';
+      h += '무료 키 발급: <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a><br>';
+      h += '구글 로그인 → Create API Key → AIza... 복사 → 저장<br>';
+      h += '<span style="color:#00ff88">💡 구글 계정 2개로 키 2개 = 무제한!</span>';
+      h += '</div></div>';
+
+      el.innerHTML = h;
+    }
+
+    function saveKey(n) {
+      var inp = document.getElementById('in' + n);
+      if (!inp) return;
+      var v = inp.value.trim();
+      if (!v || v.indexOf('AIza') !== 0) { alert('올바른 Gemini API 키를 입력해주세요\n(AIza로 시작합니다)'); return; }
+      if (n === 1) { K1 = v; localStorage.setItem('gk1', v); if (!K2) AK = 1; }
+      else { K2 = v; localStorage.setItem('gk2', v); }
+      renderAPI();
+    }
+
+    function delKey(n) {
+      if (n === 1) { K1 = ''; localStorage.removeItem('gk1'); if (AK === 1) AK = K2 ? 2 : 1; }
+      else { K2 = ''; localStorage.removeItem('gk2'); if (AK === 2) AK = 1; }
+      renderAPI();
+    }
+
+    async function testConn() {
+      var btn = document.getElementById('testBtn');
+      if (!btn) return;
+      btn.textContent = '⟳ 테스트 중...';
+      btn.disabled = true;
+      MI = 0;
+
+      for (var i = 0; i < MODELS.length; i++) {
+        var m = MODELS[i];
+        var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent?key=' + getKey();
+        try {
+          var res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'hi' }] }], generationConfig: { maxOutputTokens: 10 } })
+          });
+          if (res.ok) {
+            MI = i;
+            alert('✅ 연결 성공!\n모델: ' + m);
+            btn.textContent = '✅ 연결됨: ' + m;
+            btn.style.background = 'linear-gradient(135deg,#007A33,#005522)';
+            btn.style.color = '#fff';
+            btn.disabled = false;
+            return;
+          }
+          var ej = await res.json().catch(function () { return {}; });
+          var em = (ej.error && ej.error.message) || '';
+          if (em.indexOf('NOT_FOUND') >= 0 || em.indexOf('not found') >= 0) continue;
+          if (em.indexOf('quota') >= 0 || res.status === 429) { alert('⚠️ 한도 초과\n내일 다시 시도하거나 키 2를 추가하세요'); break; }
+          if (em.indexOf('API_KEY_INVALID') >= 0 || res.status === 400) { alert('❌ API 키 오류\naistudio.google.com/app/apikey 에서 새 키 발급'); break; }
+        } catch (e) { continue; }
+      }
+      btn.textContent = '🔍 API 연결 테스트';
+      btn.disabled = false;
+    }
+
+    // ════ Gemini 호출 ════
+    async function callGemini(prompt) {
+      var key = getKey();
+      if (!key) throw new Error('API 키를 입력해주세요');
+      var RETRY = 3;
+      var lastErr = '오류';
+
+      for (var i = 0; i < RETRY; i++) {
+        var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + getModel() + ':generateContent?key=' + key;
+        try {
+          var res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.1, maxOutputTokens: 4096, responseMimeType: 'application/json' }
+            })
+          });
+
+          if (res.ok) {
+            var j = await res.json();
+            var parts = [];
+            try { parts = j.candidates[0].content.parts; } catch (e) { }
+            var text = parts.map(function (p) { return p.text || ''; }).join('').trim();
+            if (!text) throw new Error('빈 응답');
+            return parseJSON(text);
+          }
+
+          var ej = await res.json().catch(function () { return {}; });
+          var em = (ej.error && ej.error.message) || ('HTTP ' + res.status);
+
+          if (em.indexOf('NOT_FOUND') >= 0 || em.indexOf('not found') >= 0) {
+            if (MI < MODELS.length - 1) { MI++; lastErr = '모델변경:' + getModel(); await sleep(500); continue; }
+          }
+          if (em.indexOf('quota') >= 0 || em.indexOf('RESOURCE_EXHAUSTED') >= 0 || res.status === 429) {
+            if (AK === 1 && K2 && !QUOTA2) {
+              AK = 2; key = K2; QUOTA1 = true;
+              showBanner('⚡ 키1 한도초과 → 키2 자동 전환');
+              renderAPI();
+              await sleep(2000); continue;
+            }
+            if (AK === 2 && K1 && !QUOTA1) {
+              AK = 1; key = K1; QUOTA2 = true;
+              showBanner('⚡ 키2 한도초과 → 키1 재시도');
+              renderAPI();
+              await sleep(2000); continue;
+            }
+            throw new Error('모든 키 한도초과. 내일 다시 시도하세요.');
+          }
+          if (res.status === 503 || em.indexOf('high demand') >= 0 || em.indexOf('overload') >= 0) {
+            lastErr = '서버과부하';
+            await sleep(3000 * (i + 1)); continue;
+          }
+          throw new Error(em.slice(0, 80));
+
+        } catch (err) {
+          lastErr = err.message;
+          if (i < RETRY - 1) await sleep(2000);
+        }
+      }
+      throw new Error(lastErr);
+    }
+
+    function parseJSON(text) {
+      text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      var s = text.indexOf('{'), e = text.lastIndexOf('}');
+      if (s < 0 || e < 0) throw new Error('JSON없음: ' + text.slice(0, 60));
+      var raw = text.slice(s, e + 1);
+      try { return JSON.parse(raw); } catch (e1) { }
+      raw = raw.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ' ').replace(/,\s*([}\]])/g, '$1');
+      try { return JSON.parse(raw); } catch (e2) { }
+      raw = raw.replace(/"((?:[^"\\]|\\[\s\S])*)"/g, function (m, i) { return '"' + i.replace(/[\n\r\t]/g, ' ') + '"'; });
+      try { return JSON.parse(raw); } catch (e3) { }
+      raw = raw.replace(/([^\\])\\([^"\\\/bfnrtu])/g, '$1$2');
+      try { return JSON.parse(raw); } catch (e4) {
+        throw new Error('파싱실패: ' + e4.message.slice(0, 50));
+      }
+    }
+
+    function showBanner(msg) {
+      var b = document.createElement('div');
+      b.style.cssText = 'background:#1a2a00;border:1px solid #ffd700;border-radius:8px;padding:10px 14px;margin:8px 16px;font-size:12px;color:#ffd700';
+      b.textContent = msg;
+      var pa = document.getElementById('progArea');
+      pa.insertBefore(b, pa.firstChild);
+      setTimeout(function () { if (b.parentNode) b.parentNode.removeChild(b); }, 4000);
+    }
+
+    // ════ 프롬프트 ════
+    function P_ALL() { return TODAY + ' 한국 주식시장 종합 분석. 규칙: JSON만. 값은 20자이내. 큰따옴표/마침표/쉼표 금지.\n{"marketSummary":"시장요약","hotToday":[{"name":"삼성전자","ticker":"005930","reason":"이유","change":"+2%"}],"weeklyWinners":[{"name":"","ticker":"","disclosure":"","weekReturn":"","size":""}],"upcoming":[{"name":"","ticker":"","event":"","timing":"","probability":""}],"sectorTrend":"강세섹터","keyWatch":"체크포인트"}'; }
+    function P_TODAY() { return TODAY + ' 한국 주식시장 핫 공시 TOP 10. 규칙: JSON만. 값은 25자이내. 큰따옴표/마침표 금지.\n{"summary":"요약","companies":[{"rank":1,"name":"삼성SDI","ticker":"006400","disclosureType":"계약","disclosure":"벤츠배터리공급","currentPrice":"700000원","priceChange":"+5%","targetPrice":"880000원","undervaluation":8,"futureValue":9,"buyRank":1,"recommendation":"강력매수","reason":"투자포인트","risk":"리스크"}]}'; }
+    function P_WEEK() { return '2026년 한국 주식시장 핫 공시 TOP 10과 1주 상승률. 규칙: JSON만. 값 25자이내. 큰따옴표/마침표 금지.\n{"summary":"트렌드","items":[{"rank":1,"name":"삼성SDI","ticker":"006400","disclosureDate":"4월20일","disclosureType":"계약","disclosure":"벤츠배터리계약","disclosureSize":"10조원","dayOneReturn":"+17%","weekReturn":"+60%","currentPrice":"700000원","lesson":"교훈"}]}'; }
+    function P_PLAN() { return '2026년 앞으로 예정된 한국 주식 핫 공시 TOP 10. 규칙: JSON만. 값 25자이내. 큰따옴표/마침표 금지.\n{"summary":"예정요약","items":[{"rank":1,"name":"한화에어로스페이스","ticker":"012450","expectedDate":"2026상반기","disclosureType":"수주","expectedContent":"사우디K9수주","expectedSize":"20조원","probability":"매우높음","upside":"+20%","watchPoint":"주목포인트"}]}'; }
+
+    // ════ STEP 1: 수집 ════
+    async function doCollect() {
+      if (!K1 && !K2) { alert('먼저 Gemini API 키를 입력해주세요'); return; }
+      if (BUSY) return;
+      BUSY = true; READY = false;
+      QUOTA1 = false; QUOTA2 = false;
+      if (!getKey()) AK = K1 ? 1 : 2;
+      var hasErrors = Object.keys(ST).some(function (k) { return ST[k] === 'E'; });
+      if (!hasErrors) {
+        ST = { all: 'L', today: 'L', week: 'L', plan: 'L' };
+        DD = { all: null, today: null, week: null, plan: null };
+        EM = {};
+      } else {
+        Object.keys(ST).forEach(function (k) { if (ST[k] !== 'D') ST[k] = 'L'; });
+      }
+
+      var bc = document.getElementById('btnC');
+      bc.disabled = true; bc.className = 'btn bcol run';
+      bc.innerHTML = '<span class="spin">⟳</span> 수집 중... (약 1분 소요)';
+      document.getElementById('sharewrap').style.display = 'none';
+      document.getElementById('liveDot').classList.remove('on');
+      renderProg();
+
+      var tasks = [
+        { key: 'all', fn: P_ALL },
+        { key: 'today', fn: P_TODAY },
+        { key: 'week', fn: P_WEEK },
+        { key: 'plan', fn: P_PLAN }
+      ];
+
+      for (var i = 0; i < tasks.length; i++) {
+        var t = tasks[i];
+        if (ST[t.key] === 'D') continue;
+        try {
+          DD[t.key] = await callGemini(t.fn());
+          ST[t.key] = 'D';
+        } catch (err) {
+          EM[t.key] = err.message;
+          ST[t.key] = 'E';
+        }
+        renderProg(); renderTabs();
+        if (i < tasks.length - 1) await sleep(1500);
+      }
+
+      BUSY = false;
+      var done = ['all', 'today', 'week', 'plan'].filter(function (k) { return ST[k] === 'D'; }).length;
+      bc.disabled = false;
+      bc.className = 'btn bcol fin';
+      var hasErrorsAfter = Object.keys(ST).some(function (k) { return ST[k] === 'E'; });
+      bc.innerHTML = hasErrorsAfter ? '🔄 실패 항목 재시도' : '🔄 다시 수집';
+
+      if (done > 0) {
+        READY = true;
+        document.getElementById('liveDot').classList.add('on');
+        document.getElementById('sharewrap').style.display = 'block';
+      }
+      renderProg();
+    }
+
+    // ════ STEP 2: 공유 ════
+    async function doShare() {
+      if (!READY) { alert('먼저 데이터를 수집해주세요'); return; }
+      var bs = document.getElementById('btnS');
+      bs.disabled = true; bs.innerHTML = '<span class="spin">⟳</span> 준비 중...';
+      try {
+        var html = buildReport();
+        var fname = '주식리포트_' + TODAY.replace(/\s/g, '').replace(/년|월/g, '-').replace('일', '') + '.html';
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var file = new File([blob], fname, { type: 'text/html' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: '🇰🇷 주식 인텔리전스 — ' + TODAY, text: 'Marvel Golf 주식 인텔리전스 📊', files: [file] });
+        } else {
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a'); a.href = url; a.download = fname;
+          document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+      } catch (e) { if (e.name !== 'AbortError') alert('공유 오류: ' + e.message); }
+      bs.disabled = false; bs.innerHTML = '📤 카톡으로 공유하기';
+    }
+
+    // ════ 진행 상태 ════
+    var KLABELS = { all: '시장 종합 분석', today: '오늘의 핫 공시 TOP 10', week: '올해 공시 → 1주 상승률', plan: '앞으로 예정 공시' };
+    var KEYS = ['all', 'today', 'week', 'plan'];
+
+    function renderProg() {
+      var el = document.getElementById('progArea');
+      var allW = KEYS.every(function (k) { return ST[k] === 'W'; });
+      if (allW) { el.innerHTML = ''; return; }
+      var done = KEYS.filter(function (k) { return ST[k] === 'D'; }).length;
+      var errs = KEYS.filter(function (k) { return ST[k] === 'E'; }).length;
+      var pct = (done / 4) * 100;
+      var fin = (done + errs) === 4;
+      var mc = BUSY ? 'C' : fin && done > 0 ? 'S' : errs > 0 ? 'E' : 'C';
+      var msg = BUSY ? ('⚡ ' + done + '/4 수집 완료 · Gemini 분석 중...') :
+        fin && done > 0 ? '✅ 수집 완료! 아래 📤 버튼을 눌러 공유하세요' :
+          errs > 0 && done === 0 ? '⚠️ 수집 실패. API 키 테스트 후 재시도' : '';
+      var rows = KEYS.map(function (k) {
+        var st = ST[k];
+        var ic = st === 'L' ? '<span class="spin" style="color:#ffd700;font-size:12px">⟳</span>' :
+          st === 'D' ? '<span style="color:#00ff88;font-size:13px">✓</span>' :
+            st === 'E' ? '<span style="color:#ff4444;font-size:13px">✗</span>' :
+              '<span style="color:#2a3a5a;font-size:10px">' + (KEYS.indexOf(k) + 1) + '</span>';
+        var lc = st === 'L' ? 'L' : st === 'D' ? 'D' : st === 'E' ? 'E' : '';
+        var sub = st === 'D' ? '완료' : st === 'L' ? '분석중...' : st === 'E' ? (EM[k] || '실패').slice(0, 20) : '';
+        return '<div class="srow"><div class="scirc ' + st + '">' + ic + '</div><span class="slbl ' + lc + '">' + KLABELS[k] + '</span><span class="ssub">' + sub + '</span></div>';
+      }).join('');
+      el.innerHTML = '<div class="pbox">' + rows + '<div class="pbar"><div class="pfill" style="width:' + pct + '%"></div></div>' + (msg ? '<div class="pmsg ' + mc + '">' + msg + '</div>' : '') + '</div>';
+    }
+
+    // ════ 탭 ════
+    var TABS = [{ id: 'all', lb: '⚡ 종합' }, { id: 'today', lb: '📋 오늘 공시' }, { id: 'week', lb: '📈 상승률' }, { id: 'plan', lb: '🔭 예정' }];
+
+    function renderTabs() {
+      var any = KEYS.some(function (k) { return DD[k] !== null; });
+      var ra = document.getElementById('resultArea');
+      if (!any) { ra.style.display = 'none'; return; }
+      ra.style.display = 'block';
+      document.getElementById('tabBar').innerHTML = TABS.map(function (t) {
+        var st = ST[t.id];
+        var dot = st === 'D' ? '<span class="tdot" style="background:#00ff88"></span>' :
+          st === 'L' ? '<span class="tdot" style="background:#ffd700;animation:pulse 1s infinite"></span>' :
+            st === 'E' ? '<span class="tdot" style="background:#ff4444"></span>' : '';
+        return '<button class="tab' + (CURTAB === t.id ? ' on' : '') + '" onclick="sw(\'' + t.id + '\')">' + t.lb + dot + '</button>';
+      }).join('');
+      renderCnt();
+    }
+    function sw(id) { CURTAB = id; renderTabs(); }
+    function renderCnt() {
+      var el = document.getElementById('tabCnt');
+      var d = DD[CURTAB];
+      if (!d) { el.innerHTML = '<div style="text-align:center;color:#4a6fa5;padding:32px;font-size:12px">' + (ST[CURTAB] === 'L' ? '<span class="spin">⟳</span> 분석 중...' : ST[CURTAB] === 'E' ? '⚠️ ' + (EM[CURTAB] || '실패') : '대기 중...') + '</div>'; return; }
+      if (CURTAB === 'all') el.innerHTML = bAll(d);
+      else if (CURTAB === 'today') el.innerHTML = bToday(d);
+      else if (CURTAB === 'week') el.innerHTML = bWeek(d);
+      else el.innerHTML = bPlan(d);
+    }
+
+    // ════ 탭 콘텐츠 ════
+    function bAll(d) {
+      var h = '<div class="mkb"><div style="font-size:13px;font-weight:600;margin-bottom:6px;line-height:1.5">' + (d.marketSummary || '') + '</div><div style="display:flex;gap:10px;flex-wrap:wrap">' + (d.sectorTrend ? '<span style="font-size:11px;color:#7eb8f7">📊 ' + d.sectorTrend + '</span>' : '') + (d.keyWatch ? '<span style="font-size:11px;color:#ffd700">👁 ' + d.keyWatch + '</span>' : '') + '</div></div>';
+      if (d.hotToday && d.hotToday.length) { h += '<div class="slb2">🔥 오늘 핫한 종목</div>'; d.hotToday.forEach(function (s) { h += '<div class="mrow"><div class="ml"><div class="mn">' + (s.name || '') + ' <span style="font-size:10px;color:#4a6fa5">' + (s.ticker || '') + '</span></div><div class="ms">' + (s.reason || '') + '</div></div><span style="font-weight:700;color:' + cc(s.change) + ';flex-shrink:0">' + (s.change || '') + '</span></div>'; }); }
+      if (d.weeklyWinners && d.weeklyWinners.length) { h += '<div class="slb2">📈 올해 공시 후 주요 상승</div>'; d.weeklyWinners.forEach(function (s) { h += '<div class="mrow"><div class="ml"><div class="mn">' + (s.name || '') + ' <span style="font-size:10px;color:#4a6fa5">' + (s.ticker || '') + '</span></div><div class="ms">' + (s.disclosure || '') + (s.size ? ' · ' + s.size : '') + '</div></div><span style="font-weight:700;color:#00ff88;font-size:15px;flex-shrink:0">' + (s.weekReturn || '') + '</span></div>'; }); }
+      if (d.upcoming && d.upcoming.length) { h += '<div class="slb2">🔭 앞으로 예정 공시</div>'; d.upcoming.forEach(function (s) { h += '<div class="mrow"><div class="ml"><div class="mn">' + (s.name || '') + ' <span style="font-size:10px;color:#4a6fa5">' + (s.ticker || '') + '</span></div><div class="ms">' + (s.event || '') + (s.probability ? ' · ' + s.probability : '') + '</div></div><span style="color:#ffd700;font-size:10px;flex-shrink:0">' + (s.timing || '') + '</span></div>'; }); }
+      return h;
+    }
+    function bToday(d) {
+      var h = d.summary ? '<div class="sbox"><span>📰</span><span>' + d.summary + '</span></div>' : '';
+      (d.companies || []).slice().sort(function (a, b) { return (a.buyRank || 99) - (b.buyRank || 99); }).forEach(function (c) {
+        var avg = ((c.undervaluation || 5) + (c.futureValue || 5)) / 2, col = sc(avg);
+        h += '<div class="card" style="border-left:3px solid ' + col + '"><div class="cardh"><span class="rk" style="background:' + (c.buyRank === 1 ? 'linear-gradient(135deg,#c8900a,#8B6914)' : c.buyRank <= 3 ? '#1a56db' : '#1a2744') + '">' + (c.buyRank || '?') + '</span><span style="font-size:14px;font-weight:700">' + (c.name || '') + '</span><span style="font-size:10px;color:#4a6fa5">' + (c.ticker || '') + '</span><span style="font-size:10px;background:#1a2744;color:#7eb8f7;border-radius:4px;padding:2px 6px">' + (c.disclosureType || '') + '</span><span style="font-size:11px;font-weight:700;margin-left:auto;color:' + col + '">' + (c.recommendation || '') + '</span></div><div class="dis">📋 ' + (c.disclosure || '') + '</div><div class="rsn">💡 ' + (c.reason || '') + '</div><div class="rsk">⚠️ ' + (c.risk || '') + '</div><div class="cf"><div><span style="font-size:15px;font-weight:700">' + (c.currentPrice || '') + '</span><span style="font-size:11px;margin-left:6px;color:' + cc(c.priceChange) + '">' + (c.priceChange || '') + '</span><div style="font-size:10px;color:#4a6fa5;margin-top:2px">목표 ' + (c.targetPrice || '') + '</div></div><div class="scb">' + [['저평가', c.undervaluation], ['미래가치', c.futureValue]].map(function (lv) { return '<div class="scr"><div class="sclr"><span style="font-size:9px;color:#4a6fa5">' + lv[0] + '</span><span style="font-size:9px;color:' + sc(lv[1] || 5) + '">' + lv[1] + '/10</span></div><div class="sbar"><div class="sfil" style="width:' + (((lv[1] || 5) / 10) * 100) + '%;background:' + sc(lv[1] || 5) + '"></div></div></div>'; }).join('') + '</div></div></div>';
+      }); return h;
+    }
+    function bWeek(d) {
+      var h = d.summary ? '<div class="sbox"><span>📰</span><span>' + d.summary + '</span></div>' : '';
+      (d.items || []).forEach(function (it, i) { h += '<div class="card" style="border-left:3px solid ' + (i < 3 ? '#ffd700' : '#1a3a6e') + '"><div class="cardh"><span class="rk" style="background:' + (i === 0 ? 'linear-gradient(135deg,#c8900a,#8B6914)' : i < 3 ? '#1a56db' : '#1a2744') + '">' + (it.rank || i + 1) + '</span><span style="font-size:14px;font-weight:700">' + (it.name || '') + '</span><span style="font-size:10px;color:#4a6fa5">' + (it.ticker || '') + '</span><span style="font-size:10px;background:#1a2744;color:#7eb8f7;border-radius:4px;padding:2px 6px">' + (it.disclosureType || '') + '</span><span style="margin-left:auto;font-size:10px;color:#ff9933">' + (it.disclosureDate || '') + '</span></div><div class="dis">📋 ' + (it.disclosure || '') + (it.disclosureSize ? ' <b style="color:#7eb8f7">' + it.disclosureSize + '</b>' : '') + '</div><div class="sr"><div class="stat"><div class="statl">당일</div><div class="statv" style="color:' + cc(it.dayOneReturn) + '">' + (it.dayOneReturn || '') + '</div></div><div class="stat stathl"><div class="statl">1주 상승</div><div class="statv big" style="color:#00ff88">' + (it.weekReturn || '') + '</div></div><div class="stat"><div class="statl">현재가</div><div class="statv">' + (it.currentPrice || '') + '</div></div><div style="flex:1;font-size:11px;color:#7eb8f7">💡 ' + (it.lesson || '') + '</div></div></div>'; }); return h;
+    }
+    function bPlan(d) {
+      var h = d.summary ? '<div class="sbox"><span>📰</span><span>' + d.summary + '</span></div>' : '';
+      (d.items || []).forEach(function (it, i) { var col = pc(it.probability); h += '<div class="card" style="border-left:3px solid ' + col + '"><div class="cardh"><span class="rk" style="background:' + (i === 0 ? 'linear-gradient(135deg,#c8900a,#8B6914)' : i < 3 ? '#1a56db' : '#1a2744') + '">' + (it.rank || i + 1) + '</span><span style="font-size:14px;font-weight:700">' + (it.name || '') + '</span><span style="font-size:10px;color:#4a6fa5">' + (it.ticker || '') + '</span><span style="font-size:10px;background:#1a2744;color:#7eb8f7;border-radius:4px;padding:2px 6px">' + (it.disclosureType || '') + '</span><span style="margin-left:auto;border:1px solid ' + col + ';color:' + col + ';font-size:10px;border-radius:4px;padding:1px 7px;font-weight:700">' + (it.probability || '') + '</span></div><div class="dis">📋 ' + (it.expectedContent || '') + '</div><div class="mc">' + (it.expectedDate ? '<span style="font-size:10px;background:#1a2744;color:#7eb8f7;border-radius:4px;padding:2px 7px">📅 ' + it.expectedDate + '</span>' : '') + (it.expectedSize ? '<span style="font-size:10px;background:#0a2040;color:#7eb8f7;border:1px solid #1a5aaa;border-radius:4px;padding:2px 7px">💰 ' + it.expectedSize + '</span>' : '') + (it.upside ? '<span style="font-size:10px;background:#001a0a;color:#00ff88;border:1px solid #004a1a;border-radius:4px;padding:2px 7px">📈 ' + it.upside + '</span>' : '') + '</div><div style="font-size:11px;color:#7eb8f7">👁 ' + (it.watchPoint || '') + '</div></div>'; }); return h;
+    }
+
+    // ════ PDF 리포트 ════
+    function buildReport() {
+      var A = DD.all, T = DD.today, W = DD.week, U = DD.plan;
+      var sC = function (v) { return v >= 8 ? '#00a651' : v >= 6 ? '#c8900a' : v >= 4 ? '#c85a00' : '#c00020'; };
+      var cC = function (s) { return (s || '').charAt(0) === '+' ? '#00a651' : '#c00020'; };
+      var pC = function (p) { return !p ? '#888' : p.indexOf('매우') >= 0 ? '#00a651' : p.indexOf('높') >= 0 ? '#c8900a' : p.indexOf('중') >= 0 ? '#c85a00' : '#888'; };
+      var CSS = '*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;background:#fff;color:#111;font-size:13px;line-height:1.6;max-width:680px;margin:0 auto}.cov{background:linear-gradient(135deg,#0d1b2e,#1a3a6e);color:#fff;padding:28px 20px;text-align:center}.bdy{padding:16px 14px 40px}.sec{margin-bottom:20px}.stit{font-size:14px;font-weight:700;color:#0d1b2e;background:#f0f5ff;border-left:4px solid #1a56db;padding:7px 12px;border-radius:0 6px 6px 0;margin-bottom:11px}.card{background:#fafbff;border:1px solid #e5eaf5;border-radius:8px;padding:11px 13px;margin-bottom:8px}.ch{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}.rk{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}.sum{background:#f5f8ff;border:1px solid #dde8ff;border-radius:8px;padding:10px 13px;font-size:12px;color:#333;margin-bottom:11px}.mkt{background:linear-gradient(135deg,#f0f5ff,#e5eeff);border:1px solid #c8d8ff;border-radius:10px;padding:12px 14px;margin-bottom:11px}.sl{font-size:10px;color:#888;letter-spacing:1px;font-weight:600;margin:9px 0 6px}.mr{display:flex;justify-content:space-between;align-items:center;background:#fafbff;border:1px solid #eee;border-radius:7px;padding:8px 12px;margin-bottom:7px;gap:8px}.prt{display:block;width:100%;background:#1a56db;color:#fff;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin:18px 0 7px;font-family:inherit}.gui{font-size:11px;color:#888;text-align:center;line-height:1.9;margin-bottom:14px}.ftr{text-align:center;font-size:10px;color:#aaa;padding:18px;border-top:1px solid #eee}@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}.np{display:none!important}.cov{background:linear-gradient(135deg,#0d1b2e,#1a3a6e)!important}.mkt{background:linear-gradient(135deg,#f0f5ff,#e5eeff)!important}}';
+      function sec(ic, t, c) { return '<div class="sec"><div class="stit">' + ic + ' ' + t + '</div>' + c + '</div>'; }
+      function mrw(n, tk, sub, right, rc) { return '<div class="mr"><div style="flex:1;min-width:0"><b>' + n + '</b><span style="font-size:10px;color:#888;margin-left:5px">' + (tk || '') + '</span><div style="font-size:11px;color:#555;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (sub || '') + '</div></div><span style="font-weight:700;color:' + (rc || '#333') + ';flex-shrink:0">' + (right || '') + '</span></div>'; }
+      var body = '';
+      if (A) { var ab = '<div class="mkt"><div style="font-size:14px;font-weight:600;margin-bottom:6px;line-height:1.5">' + (A.marketSummary || '') + '</div><div style="display:flex;gap:12px;flex-wrap:wrap">' + (A.sectorTrend ? '<span style="font-size:11px;color:#1a56db">📊 ' + A.sectorTrend + '</span>' : '') + (A.keyWatch ? '<span style="font-size:11px;color:#c8900a;font-weight:600">👁 ' + A.keyWatch + '</span>' : '') + '</div></div>'; if (A.hotToday && A.hotToday.length) { ab += '<div class="sl">🔥 오늘 핫한 종목</div>'; A.hotToday.forEach(function (s) { ab += mrw(s.name, s.ticker, s.reason, s.change, cC(s.change)); }); } if (A.weeklyWinners && A.weeklyWinners.length) { ab += '<div class="sl">📈 올해 공시 후 주요 상승</div>'; A.weeklyWinners.forEach(function (s) { ab += mrw(s.name, s.ticker, (s.disclosure || '') + (s.size ? ' · ' + s.size : ''), s.weekReturn, '#00a651'); }); } if (A.upcoming && A.upcoming.length) { ab += '<div class="sl">🔭 앞으로 예정 공시</div>'; A.upcoming.forEach(function (s) { ab += mrw(s.name, s.ticker, (s.event || '') + (s.probability ? ' · ' + s.probability : ''), s.timing, '#c8900a'); }); } body += sec('⚡', '시장 종합 요약', ab); }
+      if (T) { var tb = T.summary ? '<div class="sum">📰 ' + T.summary + '</div>' : ''; (T.companies || []).slice().sort(function (a, b) { return (a.buyRank || 99) - (b.buyRank || 99); }).forEach(function (c) { var avg = ((c.undervaluation || 5) + (c.futureValue || 5)) / 2; tb += '<div class="card" style="border-left:3px solid ' + sC(avg) + '"><div class="ch"><span class="rk" style="background:' + (c.buyRank === 1 ? '#c8900a' : c.buyRank <= 3 ? '#1a56db' : '#aaa') + '">' + (c.buyRank || '?') + '</span><b>' + (c.name || '') + '</b><span style="font-size:10px;color:#888;margin-left:4px">' + (c.ticker || '') + '</span><span style="font-size:10px;background:#e8f0ff;color:#1a56db;border-radius:4px;padding:1px 5px;margin-left:4px">' + (c.disclosureType || '') + '</span><span style="margin-left:auto;font-weight:700;color:' + sC(avg) + '">' + (c.recommendation || '') + '</span></div><div style="font-size:11px;color:#444;margin-bottom:4px">📋 ' + (c.disclosure || '') + '</div><div style="font-size:11px;color:#1a56db;margin-bottom:3px">💡 ' + (c.reason || '') + '</div><div style="font-size:10px;color:#c00020;margin-bottom:6px">⚠️ ' + (c.risk || '') + '</div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid #eee"><b>' + (c.currentPrice || '') + '</b><span style="color:' + cC(c.priceChange) + ';font-weight:700;margin-left:4px">' + (c.priceChange || '') + '</span><span style="margin-left:auto;font-size:11px">저평가 <b style="color:' + sC(c.undervaluation || 5) + '">' + (c.undervaluation || '-') + '/10</b> 미래 <b style="color:' + sC(c.futureValue || 5) + '">' + (c.futureValue || '-') + '/10</b></span></div></div>'; }); body += sec('📋', '오늘의 핫 공시 TOP 10', tb); }
+      if (W) { var wb = W.summary ? '<div class="sum">📰 ' + W.summary + '</div>' : ''; (W.items || []).forEach(function (it, i) { wb += '<div class="card" style="border-left:3px solid ' + (i < 3 ? '#c8900a' : '#ccc') + '"><div class="ch"><span class="rk" style="background:' + (i === 0 ? '#c8900a' : i < 3 ? '#1a56db' : '#aaa') + '">' + (it.rank || i + 1) + '</span><b>' + (it.name || '') + '</b><span style="font-size:10px;color:#888;margin-left:4px">' + (it.ticker || '') + '</span><span style="margin-left:auto;color:#c85a00;font-size:10px">' + (it.disclosureDate || '') + '</span></div><div style="font-size:11px;color:#444;margin-bottom:6px">📋 ' + (it.disclosure || '') + (it.disclosureSize ? ' <b style="color:#1a56db">' + it.disclosureSize + '</b>' : '') + '</div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="text-align:center"><div style="font-size:9px;color:#888">당일</div><div style="color:' + cC(it.dayOneReturn) + ';font-weight:700">' + (it.dayOneReturn || '') + '</div></div><div style="text-align:center;background:#f0fff6;border-radius:6px;padding:4px 10px"><div style="font-size:9px;color:#888">1주</div><div style="font-size:20px;font-weight:700;color:#00a651">' + (it.weekReturn || '') + '</div></div><div style="flex:1;font-size:11px;color:#1a56db">💡 ' + (it.lesson || '') + '</div></div></div>'; }); body += sec('📈', '올해 핫 공시 → 1주 상승률', wb); }
+      if (U) { var ub = U.summary ? '<div class="sum">📰 ' + U.summary + '</div>' : ''; (U.items || []).forEach(function (it, i) { var cp = pC(it.probability); ub += '<div class="card" style="border-left:3px solid ' + cp + '"><div class="ch"><span class="rk" style="background:' + (i === 0 ? '#c8900a' : i < 3 ? '#1a56db' : '#aaa') + '">' + (it.rank || i + 1) + '</span><b>' + (it.name || '') + '</b><span style="font-size:10px;color:#888;margin-left:4px">' + (it.ticker || '') + '</span><span style="margin-left:auto;border:1px solid ' + cp + ';color:' + cp + ';font-size:10px;border-radius:4px;padding:1px 7px;font-weight:700">' + (it.probability || '') + '</span></div><div style="font-size:11px;color:#444;margin-bottom:6px">📋 ' + (it.expectedContent || '') + '</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px">' + (it.expectedDate ? '<span style="font-size:10px;background:#f0f4ff;border:1px solid #c8d8ff;border-radius:4px;padding:2px 6px">📅 ' + it.expectedDate + '</span>' : '') + (it.expectedSize ? '<span style="font-size:10px;background:#fff8e0;border:1px solid #ffe08a;border-radius:4px;padding:2px 6px;color:#7a5c00">💰 ' + it.expectedSize + '</span>' : '') + (it.upside ? '<span style="font-size:10px;background:#f0fff5;border:1px solid #b2f0c8;border-radius:4px;padding:2px 6px;color:#005c2a">📈 ' + it.upside + '</span>' : '') + '</div><div style="font-size:11px;color:#1a56db">👁 ' + (it.watchPoint || '') + '</div></div>'; }); body += sec('🔭', '앞으로 예정 공시', ub); }
+      return '<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>주식 인텔리전스 ' + TODAY + '</title><style>' + CSS + '</style></head><body><div class="cov"><div style="font-size:9px;letter-spacing:3px;color:#7eb8f7;margin-bottom:7px">MARVEL GOLF · STOCK INTELLIGENCE</div><h1 style="font-size:22px;font-weight:700;margin:6px 0 4px">🇰🇷 주식 인텔리전스 리포트</h1><div style="font-size:12px;color:#a0c4ff;margin-bottom:12px">' + TODAY + ' · Google Gemini AI</div><div style="font-size:10px;color:#7eb8f7;background:#ffffff15;border-radius:6px;padding:8px;line-height:1.7">⚠️ AI 분석 참고용. 투자 권유 아닙니다.</div></div><div class="bdy"><div class="np"><button class="prt" onclick="window.print()">🖨️ PDF로 저장하기</button><div class="gui">아이폰: Safari → 공유 → PDF 저장 / 안드로이드: Chrome → 인쇄 → PDF<br>저장 후 카톡으로 공유 📤</div></div>' + body + '<div class="np"><button class="prt" onclick="window.print()">🖨️ PDF로 저장하기</button></div></div><div class="ftr">MARVEL GOLF ACADEMY · ' + TODAY + ' · Google Gemini AI</div></body></html>';
+    }
+
+    // ════ PWA 설치 및 초기화 ════
+    var deferredPrompt;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      var btn = document.getElementById('installBtn');
+      if (btn) btn.style.display = 'inline-block';
+    });
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(function (choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+            document.getElementById('installBtn').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        alert('홈 화면에 추가하기:\n\n📱 iOS: 하단 공유(⬆️) → "홈 화면에 추가"\n🤖 Android Chrome: 메뉴(⋮) → "앱 설치" 또는 "홈 화면에 추가"');
+      }
+    }
+
+    (function () {
+      var ua = navigator.userAgent || '';
+      var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+      var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      if (isIOS && !isStandalone && !localStorage.getItem('iosGuideShown')) {
+        var btn = document.getElementById('installBtn');
+        if (btn) {
+          btn.style.display = 'inline-block';
+          btn.innerHTML = '📥 설치';
+        }
+        localStorage.setItem('iosGuideShown', '1');
+      }
+    })();
+
+    renderAPI();
+  </script>
+</body>
+
+</html>
